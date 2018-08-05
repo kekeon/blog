@@ -1,9 +1,9 @@
-hexo blog 
+#### kekeon blog
 ---
-<<<<<<< HEAD
-[https://hexo.io/](http://note.youdao.com/)
-=======
-[https://hexo.io/]
+www.kekeon.com
 
--test config
->>>>>>> bddb4c3881b6289a9c8eac4ea34d11c38d914aa0
+- hexo edit
+
+- Share interesting knowledge
+
+- Record a notes
