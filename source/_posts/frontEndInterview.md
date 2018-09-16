@@ -3,6 +3,7 @@ layout: posts
 title: 前端面试题总结
 date: 2018-05-08 23:22:48
 tags: "javaScript"
+paths: "2018050801"
 ---
 
 ###  面试题总结

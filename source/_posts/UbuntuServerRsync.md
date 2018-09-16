@@ -1,8 +1,9 @@
 ---
 layout: posts
 title: ' Ubuntu server rsync 配置 '
-date: 2018-05-06 23:25:28
+date: 2018-05-10 23:25:28
 tags: 'linux'
+paths: "2018051001"
 ---
 
 ### 安装
