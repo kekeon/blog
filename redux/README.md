@@ -32,8 +32,8 @@ import 'todomvc-app-css/index.css'
 /**
  * 1. Provider context 全局消费者 store
  * 2. 关注 createStore 的入参，和参数
- * 
  */
+
 const store = createStore(reducer)
 
 render(
@@ -44,6 +44,7 @@ render(
 )
 
 ```
+
 > createStore 入参, 在 /reducers/index.js 中 rootReducer
 
 ```js
@@ -64,5 +65,99 @@ export default rootReducer
 
 > combineReducers 入参和出参
 
+- 入参 reducer 函数
 
+```js
+// 1. assertReducerShape 判断 reducer 函数是否有效
 
+```
+
+- 出参
+
+```ts
+
+/**
+ * 1. 返回 combination 函数，
+ *    函数的入参是， state: 当前的state, action: 提交的: action
+ *    出参返回的是state, 先不关注这个函数具体是处理什么
+ *  2. combination 作为 createStore 的入参
+ */
+
+  return function combination(
+    state: StateFromReducersMapObject<typeof reducers> = {},
+    action: AnyAction
+  ) {
+    if (shapeAssertionError) {
+      throw shapeAssertionError
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      const warningMessage = getUnexpectedStateShapeWarningMessage(
+        state,
+        finalReducers,
+        action,
+        unexpectedKeyCache
+      )
+      if (warningMessage) {
+        warning(warningMessage)
+      }
+    }
+
+    let hasChanged = false
+
+    // 下一次的状态， finalReducerKeys： 记录有效的 reducers 的 key， finalReducers： key 对应的方法
+    const nextState: StateFromReducersMapObject<typeof reducers> = {}
+    for (let i = 0; i < finalReducerKeys.length; i++) {
+      const key = finalReducerKeys[i]
+      const reducer = finalReducers[key]
+      // dispatch
+      const previousStateForKey = state[key]
+      const nextStateForKey = reducer(previousStateForKey, action)
+      if (typeof nextStateForKey === 'undefined') {
+        const errorMessage = getUndefinedStateErrorMessage(key, action)
+        throw new Error(errorMessage)
+      }
+      nextState[key] = nextStateForKey
+      hasChanged = hasChanged || nextStateForKey !== previousStateForKey
+    }
+    hasChanged =
+      hasChanged || finalReducerKeys.length !== Object.keys(state).length
+    return hasChanged ? nextState : state
+  }
+
+```
+
+- 接下来继续看 createStore
+
+```ts
+
+// 在代码实现中实现了重载
+export default function createStore<S, A extends Action, Ext = {}, StateExt = never>(reducer: Reducer<S, A>, preloadedState?: PreloadedState<S> | StoreEnhancer<Ext, StateExt>, enhancer?: StoreEnhancer<Ext, StateExt>): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext {}
+
+// reducer: 就是 combination 函数
+
+// preloadedState: 初始化 state 参数
+
+// enhancer: 是一个 store 增强函数
+
+// enhancer 调用
+  if (typeof enhancer !== 'undefined') {
+    if (typeof enhancer !== 'function') {
+      throw new Error('Expected the enhancer to be a function.')
+    }
+
+    return enhancer(createStore)(
+      reducer,
+      preloadedState as PreloadedState<S>
+    ) as Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
+  }
+
+  // enhancer 使用方式
+
+   function enhancer(createStore) {
+    return (reducer,preloadedState) => {
+         //逻辑代码
+    }
+ }
+
+```

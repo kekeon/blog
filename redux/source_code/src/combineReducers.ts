@@ -179,6 +179,7 @@ export default function combineReducers(reducers: ReducersMapObject) {
 
   let shapeAssertionError: Error
   try {
+    // 判断 reducer 函数是否有效
     assertReducerShape(finalReducers)
   } catch (e) {
     shapeAssertionError = e
