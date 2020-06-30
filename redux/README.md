@@ -16,7 +16,7 @@
 
 > 三者之间的关系及简单理解，不对的大家多多指教， 首先创建全局Store 管理 state, 通过 dispatch 提交 action 触发 reducer 函数修改 store 中的 state
 
-#### TODO MVC examples 读源码
+#### 从 counter examples 读源码
 
 > createStore， 创建store， 关注入参和出参
 
@@ -159,5 +159,25 @@ export default function createStore<S, A extends Action, Ext = {}, StateExt = ne
          //逻辑代码
     }
  }
+
+```
+
+- createStore 入参和出参
+
+```js
+
+// 入参 educer: 就是 combination 函数 ，preloadedState: 初始化 state 参数 enhancer: 是一个 store 增强函数
+
+// 出参 store Object
+
+const store = {
+     dispatch: dispatch as Dispatch<A>,
+     subscribe,
+     getState,
+     replaceReducer,
+    [$$observable]: observable
+}
+
+return store;
 
 ```
