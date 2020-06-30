@@ -122,6 +122,8 @@ store.subscribe(render)
   }
 ```
 
+> 总结： 通过上面的大概了解 redux 的设计，中 使用发布/订阅模式来实现，深入了解往下看
+
 #### TODO MVC examples  深入了解 React-Redux
 
 > createStore， 创建store， 关注入参和出参
