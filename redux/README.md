@@ -18,6 +18,112 @@
 
 #### 从 counter examples 读源码
 
+> 这里主要了解一下 store 的创建， 以及 store 的消费 和 state 更新
+> createStore， 创建store， 关注入参和出参
+
+```js
+
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { createStore } from 'redux'
+import Counter from './components/Counter'
+import counter from './reducers'
+
+// 入参是 reducer 在 reducers/index.js， 方便看先贴出来
+
+/* 入参 counter start */
+
+export default (state = 0, action) => {
+  switch (action.type) {
+    case 'INCREMENT':
+      return state + 1
+    case 'DECREMENT':
+      return state - 1
+    default:
+      return state
+  }
+}
+/*  入参 counter end */
+
+const store = createStore(counter)
+
+/* store Object 出参 start */
+
+const store = {
+     dispatch: dispatch as Dispatch<A>,
+     subscribe,
+     getState,
+     replaceReducer,
+    [$$observable]: observable
+}
+
+return store;
+/* 出参 end */
+
+const rootEl = document.getElementById('root')
+
+
+// 在这里边使用了， 返回store 中的 getState 、 dispatch 、 subscribe 三个方法，下面将揭示三者之间的关系
+
+const render = () => ReactDOM.render(
+  <Counter
+    value={store.getState()}
+    onIncrement={() => store.dispatch({ type: 'INCREMENT' })}
+    onDecrement={() => store.dispatch({ type: 'DECREMENT' })}
+  />,
+  rootEl
+)
+
+render()
+
+store.subscribe(render)
+
+```
+
+> 在这里用到的发布/订阅模式来实现, 不了解的自行查询哦
+
+1. 先看一下 [createStore](https://github.com/kekeon/blog/tree/master/redux/source_code/src/createStore.ts) 中的 89 行， 先不要关注其他的
+
+2. currentReducer 就是传进来的 counter
+
+3. currentState 就是 store.getState() 的返回值，例子中没有默认值就是 undefined
+
+4. store.subscribe(render) ，这里订阅了 render 这个组件方法, 返回值：unsubscribe 取消订阅
+
+5. 在 subscribe 中 nextListeners.push(listener) 会把 render push 到 nextListeners中
+
+6. dispatch 的实现
+
+```js
+// 删减版代码
+
+  function dispatch(action: A) {
+
+    try {
+      isDispatching = true
+      // 结合 Counter 示例 currentReducer 就是 counter 函数， 根据 action.type, 修改 state
+
+      // currentReducer 返回的 state 会更新到 currentState
+      currentState = currentReducer(currentState, action)
+    } finally {
+      isDispatching = false
+    }
+
+    // 监听队列， 中存放一个 render 方法
+    const listeners = (currentListeners = nextListeners)
+  
+    for (let i = 0; i < listeners.length; i++) {
+      const listener = listeners[i]
+      // 在此调用 render 方法渲染, 渲染中会 调用 getState 获取 currentState
+      listener()
+    }
+
+    return action
+  }
+```
+
+#### TODO MVC examples  深入了解 React-Redux
+
 > createStore， 创建store， 关注入参和出参
 
 ```js

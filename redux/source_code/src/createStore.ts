@@ -90,7 +90,7 @@ export default function createStore<S, A extends Action, Ext = {}, StateExt = ne
   let currentState = preloadedState as S
   let currentListeners: (() => void)[] | null = []
   let nextListeners = currentListeners
-  let isDispatching = false
+  let isDispatching = false  // 标记 正在执行 dispatch, 防止state 出现混乱
 
   /**
    * This makes a shallow copy of currentListeners so we can use
@@ -99,6 +99,11 @@ export default function createStore<S, A extends Action, Ext = {}, StateExt = ne
    * This prevents any bugs around consumers calling
    * subscribe/unsubscribe in the middle of a dispatch.
    */
+
+  /**
+  * 这会创建currentListeners的浅表副本，因此我们可以在调度时将* nextListeners用作临时列表。
+  * 这可以防止在分发过程中调用*订阅/取消订阅的消费者周围的任何错误。
+  */
   function ensureCanMutateNextListeners() {
     if (nextListeners === currentListeners) {
       nextListeners = currentListeners.slice()
