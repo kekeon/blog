@@ -139,7 +139,6 @@ import 'todomvc-app-css/index.css'
 
 /**
  * 1. Provider context 全局消费者 store
- * 2. 关注 createStore 的入参，和参数
  */
 
 const store = createStore(reducer)
@@ -153,139 +152,131 @@ render(
 
 ```
 
-> createStore 入参, 在 /reducers/index.js 中 rootReducer
+> 接下来我们能看下 react-redux 中 Provider 组件的实现
 
 ```js
 
-import { combineReducers } from 'redux'
-import todos from './todos'
-import visibilityFilter from './visibilityFilter'
+// 下面我们一样来看下入参
 
-const rootReducer = combineReducers({
-  todos,
-  visibilityFilter
-})
+import React, { useMemo, useEffect } from 'react'
+import PropTypes from 'prop-types'
+import { ReactReduxContext } from './Context'
+import Subscription from '../utils/Subscription'
 
-// createStore 入参， 经过 combineReducers 函数处理
-export default rootReducer
+// 我们看见内部大多用 hooks 实现
+function Provider({ store, context, children }) {
 
-```
+  // memo store
+  const contextValue = useMemo(() => {
 
-> combineReducers 入参和出参
-
-- 入参 reducer 函数
-
-```js
-// 1. assertReducerShape 判断 reducer 函数是否有效
-
-```
-
-- 出参
-
-```ts
-
-/**
- * 1. 返回 combination 函数，
- *    函数的入参是， state: 当前的state, action: 提交的: action
- *    出参返回的是state, 先不关注这个函数具体是处理什么
- *  2. combination 作为 createStore 的入参
- */
-
-  return function combination(
-    state: StateFromReducersMapObject<typeof reducers> = {},
-    action: AnyAction
-  ) {
-    if (shapeAssertionError) {
-      throw shapeAssertionError
+  // 深挖 Subscription 的实现；
+  // Subscription  constructor(store, parentSub) {}
+  // 这里只是用了一个参数
+    const subscription = new Subscription(store)
+    // 默认 notifyNestedSubs 是 notify 空函数
+    subscription.onStateChange = subscription.notifyNestedSubs
+    return {
+      store,
+      subscription
     }
+  }, [store])
 
-    if (process.env.NODE_ENV !== 'production') {
-      const warningMessage = getUnexpectedStateShapeWarningMessage(
-        state,
-        finalReducers,
-        action,
-        unexpectedKeyCache
-      )
-      if (warningMessage) {
-        warning(warningMessage)
-      }
+ // memo state
+  const previousState = useMemo(() => store.getState(), [store])
+
+
+  useEffect(() => {
+    const { subscription } = contextValue
+
+    // 重点， 生成订阅队列
+    subscription.trySubscribe()
+
+    if (previousState !== store.getState()) {
+      subscription.notifyNestedSubs()
     }
-
-    let hasChanged = false
-
-    // 下一次的状态， finalReducerKeys： 记录有效的 reducers 的 key， finalReducers： key 对应的方法
-    const nextState: StateFromReducersMapObject<typeof reducers> = {}
-    for (let i = 0; i < finalReducerKeys.length; i++) {
-      const key = finalReducerKeys[i]
-      const reducer = finalReducers[key]
-      // dispatch
-      const previousStateForKey = state[key]
-      const nextStateForKey = reducer(previousStateForKey, action)
-      if (typeof nextStateForKey === 'undefined') {
-        const errorMessage = getUndefinedStateErrorMessage(key, action)
-        throw new Error(errorMessage)
-      }
-      nextState[key] = nextStateForKey
-      hasChanged = hasChanged || nextStateForKey !== previousStateForKey
+    return () => {
+      subscription.tryUnsubscribe()
+      subscription.onStateChange = null
     }
-    hasChanged =
-      hasChanged || finalReducerKeys.length !== Object.keys(state).length
-    return hasChanged ? nextState : state
-  }
+  }, [contextValue, previousState])
 
-```
+  const Context = context || ReactReduxContext
 
-- 接下来继续看 createStore
-
-```ts
-
-// 在代码实现中实现了重载
-export default function createStore<S, A extends Action, Ext = {}, StateExt = never>(reducer: Reducer<S, A>, preloadedState?: PreloadedState<S> | StoreEnhancer<Ext, StateExt>, enhancer?: StoreEnhancer<Ext, StateExt>): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext {}
-
-// reducer: 就是 combination 函数
-
-// preloadedState: 初始化 state 参数
-
-// enhancer: 是一个 store 增强函数
-
-// enhancer 调用
-  if (typeof enhancer !== 'undefined') {
-    if (typeof enhancer !== 'function') {
-      throw new Error('Expected the enhancer to be a function.')
-    }
-
-    return enhancer(createStore)(
-      reducer,
-      preloadedState as PreloadedState<S>
-    ) as Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
-  }
-
-  // enhancer 使用方式
-
-   function enhancer(createStore) {
-    return (reducer,preloadedState) => {
-         //逻辑代码
-    }
- }
-
-```
-
-- createStore 入参和出参
-
-```js
-
-// 入参 educer: 就是 combination 函数 ，preloadedState: 初始化 state 参数 enhancer: 是一个 store 增强函数
-
-// 出参 store Object
-
-const store = {
-     dispatch: dispatch as Dispatch<A>,
-     subscribe,
-     getState,
-     replaceReducer,
-    [$$observable]: observable
+  return <Context.Provider value={contextValue}>{children}</Context.Provider>
 }
 
-return store;
+
+// store: 构建 (createStore)必穿， context、children，不必传
+if (process.env.NODE_ENV !== 'production') {
+  Provider.propTypes = {
+    store: PropTypes.shape({
+      subscribe: PropTypes.func.isRequired,
+      dispatch: PropTypes.func.isRequired,
+      getState: PropTypes.func.isRequired
+    }),
+    context: PropTypes.object,
+    children: PropTypes.any
+  }
+}
+
+export default Provider
+```
+
+###### 1. 深挖 [Subscription](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/utils/Subscription.js) 的实现
+
+```js
+
+export default class Subscription {
+  // 两个参数 store, parentSub
+  constructor(store, parentSub) {
+    this.store = store
+    this.parentSub = parentSub
+    this.unsubscribe = null
+    this.listeners = nullListeners
+
+    this.handleChangeWrapper = this.handleChangeWrapper.bind(this)
+  }
+
+ //
+  addNestedSub(listener) {
+    this.trySubscribe()
+    return this.listeners.subscribe(listener)
+  }
+
+  notifyNestedSubs() {
+    this.listeners.notify()
+  }
+
+  handleChangeWrapper() {
+    if (this.onStateChange) {
+      this.onStateChange()
+    }
+  }
+
+  isSubscribed() {
+    return Boolean(this.unsubscribe)
+  }
+
+  trySubscribe() {
+    if (!this.unsubscribe) {
+      this.unsubscribe = this.parentSub
+        ? this.parentSub.addNestedSub(this.handleChangeWrapper)
+        : this.store.subscribe(this.handleChangeWrapper)
+
+      this.listeners = createListenerCollection()
+    }
+  }
+
+  tryUnsubscribe() {
+    if (this.unsubscribe) {
+      this.unsubscribe()
+      this.unsubscribe = null
+      this.listeners.clear()
+      this.listeners = nullListeners
+    }
+  }
+}
 
 ```
+
+###### 2. 看一下App 组件中的内容
