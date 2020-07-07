@@ -279,4 +279,20 @@ export default class Subscription {
 
 ```
 
-###### 2. 看一下App 组件中的内容
+###### 2. 看一下 App 中的 Header 组件
+
+```js
+
+// src/containers/Header
+
+import { connect } from 'react-redux'
+import Header from '../components/Header'
+import { addTodo } from '../actions'
+
+// 通过 connect 包装过的组件
+export default connect(null, { addTodo })(Header)
+
+// react-redux/src/connect/connect
+```
+
+###### 3. 探索 [connect](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/connect.js)

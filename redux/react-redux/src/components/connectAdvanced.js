@@ -154,6 +154,7 @@ export default function connectAdvanced(
   /*
     selectorFactory is a func that is responsible for returning the selector function used to
     compute new props from state, props, and dispatch. For example:
+    selectorFactory是一个函数，负责返回用于从状态，道具和调度中计算新道具的选择器函数。例如：   
 
       export default connectAdvanced((dispatch, options) => (state, props) => ({
         thing: state.things[props.thingId],
@@ -164,15 +165,22 @@ export default function connectAdvanced(
     outside of their selector as an optimization. Options passed to connectAdvanced are passed to
     the selectorFactory, along with displayName and WrappedComponent, as the second argument.
 
+    工厂可以访问调度程序，因此selectorFactories可以将actionCreator绑定到其选择器之外以进行优化。传递给connectAdvanced的选项与displayName和WrappedComponent一起作为第二个参数传递给selectorFactory。
+
     Note that selectorFactory is responsible for all caching/memoization of inbound and outbound
     props. Do not use connectAdvanced directly without memoizing results between calls to your
     selector, otherwise the Connect component will re-render on every state or props change.
-  */
+  
+    请注意，selectorFactory负责所有入站和出站道具的缓存/存储。不要在没有记住选择器调用之间的结果的情况下直接使用connectAdvanced，否则Connect组件将在每种状态或道具更改时重新呈现。
+  
+    */
   selectorFactory,
   // options object:
   {
     // the func used to compute this HOC's displayName from the wrapped component's displayName.
     // probably overridden by wrapper functions such as connect()
+    
+    // 从包装的组件的displayName计算此HOC的displayName的函数。//可能被包装函数（如connect（））覆盖
     getDisplayName = name => `ConnectAdvanced(${name})`,
 
     // shown in error messages

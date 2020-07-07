@@ -22,6 +22,23 @@ import defaultSelectorFactory from './selectorFactory'
   it receives new props or store state.
  */
 
+
+/*
+
+connect 是 connectAdvanced 上的高阶组件。它将其args转换为兼容的选择器，该签名器具有以下签名：
+（dispatch，options）=>（nextState，nextOwnProps）=> nextFinalProps 
+connect将其args传递给connectAdvanced作为选项，每次Connect时，
+它们都会依次将其传递给selectorFactory。实例实例已实例化或热重载。
+
+SelectorFactory 从其mapStateToProps，mapStateToPropsFactories，
+mapDispatchToProps，mapDispatchToPropsFactories，mergeProps，
+mergePropsFactories和纯args返回最终的道具选择器。每当得到新的道具或存储状态时，
+Connect组件实例就会调用最终的道具道具选择器。
+
+*/
+
+
+
 function match(arg, factories, name) {
   for (let i = factories.length - 1; i >= 0; i--) {
     const result = factories[i](arg)
@@ -42,7 +59,9 @@ function strictEqual(a, b) {
 }
 
 // createConnect with default args builds the 'official' connect behavior. Calling it with
+// 使用默认args的createConnect会构建“官方”连接行为。用
 // different options opens up some testing and extensibility scenarios
+// 不同的选项打开了一些测试和可扩展性方案
 export function createConnect({
   connectHOC = connectAdvanced,
   mapStateToPropsFactories = defaultMapStateToPropsFactories,
@@ -50,6 +69,19 @@ export function createConnect({
   mergePropsFactories = defaultMergePropsFactories,
   selectorFactory = defaultSelectorFactory
 } = {}) {
+
+  // connect 的三个入参
+  // mapStateToProps 是个函数 （storea.getState()） => ({}), 将 返回的参数将会传递到包裹的组件中
+  // mapDispatchToProps: dispatch => ({ test() {dispatch({type: '', payload: ...})} }), 将 返回的 dispatch 调用函数参数将会传递到包裹的组件中
+  // mergeProps 合并 mapStateToProps， mapDispatchToProps 到 包裹组件的 props
+  // options 引用官网解释 
+/*
+
+[pure = true] (Boolean): 如果为 true，connector 将执行 shouldComponentUpdate 并且浅对比 mergeProps 的结果，
+避免不必要的更新，前提是当前组件是一个“纯”组件，它不依赖于任何的输入或 state 而只依赖于 props 和 Redux store 的 state。默认值为 true。
+[withRef = false] (Boolean): 如果为 true，connector 会保存一个对被包装组件实例的引用，该引用通过 getWrappedInstance() 方法获得。默认值为 false
+ */
+  
   return function connect(
     mapStateToProps,
     mapDispatchToProps,
@@ -75,6 +107,9 @@ export function createConnect({
     )
     const initMergeProps = match(mergeProps, mergePropsFactories, 'mergeProps')
 
+
+    // 高阶组件 connect()(component)
+    // connectHOC = connectAdvanced
     return connectHOC(selectorFactory, {
       // used in error messages
       methodName: 'connect',
