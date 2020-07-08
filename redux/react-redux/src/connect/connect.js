@@ -62,6 +62,12 @@ function strictEqual(a, b) {
 // 使用默认args的createConnect会构建“官方”连接行为。用
 // different options opens up some testing and extensibility scenarios
 // 不同的选项打开了一些测试和可扩展性方案
+
+// connectHOC: 一个重要组件，用于执行已确定的逻辑，渲染最终组件，后面会详细说。
+// mapStateToPropsFactories: 对 mapStateToProps 这个传入的参数的类型选择一个合适的方法。
+// mapDispatchToPropsFactories: 对 mapDispatchToProps 这个传入的参数的类型选择一个合适的方法。
+// mergePropsFactories: 对 mergeProps 这个传入的参数的类型选择一个合适的方法。 
+// selectorFactory: 以上3个只是简单的返回另一个合适的处理方法，它则执行这些处理方法，并且对结果定义了如何比较的逻辑。
 export function createConnect({
   connectHOC = connectAdvanced,
   mapStateToPropsFactories = defaultMapStateToPropsFactories,
@@ -70,18 +76,20 @@ export function createConnect({
   selectorFactory = defaultSelectorFactory
 } = {}) {
 
+   // 返回 connect
   // connect 的三个入参
   // mapStateToProps 是个函数 （storea.getState()） => ({}), 将 返回的参数将会传递到包裹的组件中
   // mapDispatchToProps: dispatch => ({ test() {dispatch({type: '', payload: ...})} }), 将 返回的 dispatch 调用函数参数将会传递到包裹的组件中
   // mergeProps 合并 mapStateToProps， mapDispatchToProps 到 包裹组件的 props
   // options 引用官网解释 
 /*
-
 [pure = true] (Boolean): 如果为 true，connector 将执行 shouldComponentUpdate 并且浅对比 mergeProps 的结果，
 避免不必要的更新，前提是当前组件是一个“纯”组件，它不依赖于任何的输入或 state 而只依赖于 props 和 Redux store 的 state。默认值为 true。
 [withRef = false] (Boolean): 如果为 true，connector 会保存一个对被包装组件实例的引用，该引用通过 getWrappedInstance() 方法获得。默认值为 false
  */
   
+
+ // 返回 connect 函数， 暂且忽略中间代码
   return function connect(
     mapStateToProps,
     mapDispatchToProps,
@@ -109,7 +117,8 @@ export function createConnect({
 
 
     // 高阶组件 connect()(component)
-    // connectHOC = connectAdvanced
+    // 也就是说调用 connectHOC 将会返回一个函数，函数的参数是 component 
+    // 忽略下方内容， 看 connectHOC = connectAdvanced 的实现
     return connectHOC(selectorFactory, {
       // used in error messages
       methodName: 'connect',
