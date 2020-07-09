@@ -103,16 +103,29 @@ export function createConnect({
       ...extraOptions
     } = {}
   ) {
+
+    // 这几个值， 都将会传入 selectorFactory 函数中
+    // mapStateToPropsFactories = [whenMapStateToPropsIsFunction, whenMapStateToPropsIsMissing]
+   
+    // initMapStateToProps 是函数， 下方是入参：出参
+    // initMapStateToProps =
+    // function initProxySelector (dispatch, { displayName }) :  (function mapToPropsProxy(stateOrDispatch, ownProps): proxy.mapToProps(stateOrDispatch))
+
+    // 其中 mapToProps， 就是 mapStateToProps = （stateOrDispatch, ownProps) ： ({})
+    // 如果 mapStateToProps 为 null , 则 initMapStateToProps 将会是 () : {}
     const initMapStateToProps = match(
       mapStateToProps,
       mapStateToPropsFactories,
       'mapStateToProps'
     )
+
     const initMapDispatchToProps = match(
       mapDispatchToProps,
       mapDispatchToPropsFactories,
       'mapDispatchToProps'
     )
+
+
     const initMergeProps = match(mergeProps, mergePropsFactories, 'mergeProps')
 
 

@@ -97,6 +97,10 @@ export function pureFinalPropsSelectorFactory(
 // props have not changed. If false, the selector will always return a new
 // object and shouldComponentUpdate will always return true.
 
+// TODO：更多注释
+//如果pure为true，则selectorFactory返回的选择器将记住其结果，
+//如果未更改最终道具，则允许connectAdvanced的shouldComponentUpdate返回false。如果为false，则选择器将始终返回新的
+// object和shouldComponentUpdate将始终返回true。
 export default function finalPropsSelectorFactory(
   dispatch,
   { initMapStateToProps, initMapDispatchToProps, initMergeProps, ...options }

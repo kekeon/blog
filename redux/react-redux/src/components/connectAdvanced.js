@@ -274,6 +274,7 @@ export default function connectAdvanced(
 
     const { pure } = connectOptions
 
+    // selectorFactory 返回 pureFinalPropsSelector(nextState, nextOwnProps) : handleSubsequentCalls(nextState, nextOwnProps)
     function createChildSelector(store) {
       return selectorFactory(store.dispatch, selectorFactoryOptions)
     }
@@ -360,6 +361,9 @@ export default function connectAdvanced(
       const childPropsSelector = useMemo(() => {
         // The child props selector needs the store reference as an input.
         // Re-create this selector whenever the store changes.
+        //子道具选择器需要商店参考作为输入。
+        //每当商店更改时，重新创建此选择器。
+        // 返回
         return createChildSelector(store)
       }, [store])
 
@@ -389,11 +393,16 @@ export default function connectAdvanced(
 
       // Determine what {store, subscription} value should be put into nested context, if necessary,
       // and memoize that value to avoid unnecessary context updates.
+      //确定应该在嵌套上下文中放入哪个{store，subscription}值，
+      //并记住该值以避免不必要的上下文更新。
       const overriddenContextValue = useMemo(() => {
         if (didStoreComeFromProps) {
           // This component is directly subscribed to a store from props.
           // We don't want descendants reading from this store - pass down whatever
           // the existing context value is from the nearest connected ancestor.
+
+          //此组件是通过props直接订阅store的。
+          //我们不希望后代从该存储中读取-传递现有上下文值来自最近连接的祖先的任何值。
           return contextValue
         }
 
@@ -434,6 +443,13 @@ export default function connectAdvanced(
         // If we have new child props, and the same wrapper props, we know we should use the new child props as-is.
         // But, if we have new wrapper props, those might change the child props, so we have to recalculate things.
         // So, we'll use the child props from store update only if the wrapper props are the same as last time.
+        
+        //这里的棘手逻辑：
+        //-此渲染可能是由R​​edux商店更新触发的，该更新生成了新的子道具
+        ///-但是，在此之后，我们可能已经获得了新的包装器道具//
+         //如果我们有新的子道具，并且同样的包装道具，我们知道我们应该照原样使用新的子道具。
+         //但是，如果我们有新的包装道具，则这些道具可能会更改子道具，因此我们必须重新计算。
+        //因此，仅当包装道具与上次相同时，我们才会使用商店更新中的子道具。
         if (
           childPropsFromStoreUpdate.current &&
           wrapperProps === lastWrapperProps.current
@@ -445,6 +461,12 @@ export default function connectAdvanced(
         // This will likely cause Bad Things (TM) to happen in Concurrent Mode.
         // Note that we do this because on renders _not_ caused by store updates, we need the latest store state
         // to determine what the child props should be.
+        
+        // TODO我们在这里直接在render（）中读取商店。馊主意？
+        //这很可能会导致在并行模式下发生不良事件（TM）。
+        //注意我们这样做是因为在由商店更新引起的渲染_not_上，我们需要最新的商店状态
+        //来确定子道具应该是什么。
+        // 最终的目的是将， store: (state => {}), 合并到 wrapperProps 参数中
         return childPropsSelector(store.getState(), wrapperProps)
       }, [store, previousStateUpdateResult, wrapperProps])
 
@@ -516,6 +538,7 @@ export default function connectAdvanced(
           // 订阅实例向下传递给我们的后代。这意味着呈现相同的
           // Context实例，并将不同的值放入上下文中。
           // 上下文生产者
+          // overriddenContextValue 传入参数
           return (
             <ContextToUse.Provider value={overriddenContextValue}>
               {renderedWrappedComponent}
