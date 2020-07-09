@@ -466,7 +466,10 @@ export default function connectAdvanced(
         //这很可能会导致在并行模式下发生不良事件（TM）。
         //注意我们这样做是因为在由商店更新引起的渲染_not_上，我们需要最新的商店状态
         //来确定子道具应该是什么。
+
+
         // 最终的目的是将， store: (state => {}), 合并到 wrapperProps 参数中
+        // 所以最终 actualChildProps 参数中将包含函数返回的参数
         return childPropsSelector(store.getState(), wrapperProps)
       }, [store, previousStateUpdateResult, wrapperProps])
 

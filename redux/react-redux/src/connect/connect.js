@@ -96,8 +96,8 @@ export function createConnect({
     mergeProps,
     {
       pure = true,
-      areStatesEqual = strictEqual,
-      areOwnPropsEqual = shallowEqual,
+      areStatesEqual = strictEqual,  // 浅对比， nextState
+      areOwnPropsEqual = shallowEqual, // 深对比， 但是也只对比一层， ownProps
       areStatePropsEqual = shallowEqual,
       areMergedPropsEqual = shallowEqual,
       ...extraOptions
@@ -111,7 +111,7 @@ export function createConnect({
     // initMapStateToProps =
     // function initProxySelector (dispatch, { displayName }) :  (function mapToPropsProxy(stateOrDispatch, ownProps): proxy.mapToProps(stateOrDispatch))
 
-    // 其中 mapToProps， 就是 mapStateToProps = （stateOrDispatch, ownProps) ： ({})
+    // 其中 mapToProps， 就是 mapStateToProps = （stateOrDispatch, ownProps)： ({})
     // 如果 mapStateToProps 为 null , 则 initMapStateToProps 将会是 () : {}
     const initMapStateToProps = match(
       mapStateToProps,
