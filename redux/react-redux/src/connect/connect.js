@@ -119,6 +119,7 @@ export function createConnect({
       'mapStateToProps'
     )
 
+    // 这个和上述查不多一样
     const initMapDispatchToProps = match(
       mapDispatchToProps,
       mapDispatchToPropsFactories,

@@ -29,6 +29,7 @@ export function pureFinalPropsSelectorFactory(
   let dispatchProps
   let mergedProps
 
+  // 初始化，将参数混合后一起传入组件中
   function handleFirstCall(firstState, firstOwnProps) {
     state = firstState
     ownProps = firstOwnProps
@@ -67,10 +68,14 @@ export function pureFinalPropsSelectorFactory(
 
     if (statePropsChanged)
       mergedProps = mergeProps(stateProps, dispatchProps, ownProps)
-
+    
+    // 将 state 与 传入组件的其他参数混合后返回
+    // 通过  connectAdvanced 中， 在传入组件中
     return mergedProps
   }
 
+  // 对比 nextState 与 state 的不同
+  // areStatesEqual 浅对比， areOwnPropsEqual 深对比，会对比每个key 的值
   function handleSubsequentCalls(nextState, nextOwnProps) {
     const propsChanged = !areOwnPropsEqual(nextOwnProps, ownProps)
     const stateChanged = !areStatesEqual(nextState, state)

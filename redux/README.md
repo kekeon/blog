@@ -318,35 +318,48 @@ export default connect(null, { addTodo })(Header)
 
 ```js
 export default function connectAdvanced(
-  /*
-
-    selectorFactory是一个函数，负责返回用于从状态，道具和调度中计算新道具的选择器函数。例如：   
-
-      export default connectAdvanced((dispatch, options) => (state, props) => ({
-        thing: state.things[props.thingId],
-        saveThing: fields => dispatch(actionCreators.saveThing(props.thingId, fields)),
-      }))(YourComponent)
-
-
-    工厂可以访问调度程序，因此selectorFactories可以将actionCreator绑定到其选择器之外以进行优化。传递给connectAdvanced的选项与displayName和WrappedComponent一起作为第二个参数传递给selectorFactory。
-
-    请注意，selectorFactory负责所有入站和出站道具的缓存/存储。不要在没有记住选择器调用之间的结果的情况下直接使用connectAdvanced，否则Connect组件将在每种状态或道具更改时重新呈现。
-  
-    */
-
   selectorFactory,
   // options object:
   {
-    // 执行后作用于connect这个HOC组件名称  
+    // 从包装的组件的displayName计算此HOC的displayName的函数。
+    //可能被包装函数（如connect（））覆盖
     getDisplayName = name => `ConnectAdvanced(${name})`,
+
+    // 用于错误提示
     methodName = 'connectAdvanced',
-    renderCountProp = undefined,
+
+   // 有REMOVED标志，这里不关注
+   renderCountProp = undefined,
+
+   // 确定connect这个HOC是否订阅state变动，好像已经没有用到了
     shouldHandleStateChanges = true,
+
+    // 有REMOVED标志，这里不关注
     storeKey = 'store',
+
+    // 有REMOVED标志，这里不关注
     withRef = false,
+
+    // 是否通过 forwardRef 暴露出传入的Component的DOM
     forwardRef = false,
+
+   // React的createContext
     context = ReactReduxContext,
     ...connectOptions
+
+    /*
+    connectOptions： 主要包含如下参数
+     initMapStateToProps,
+      initMapDispatchToProps,
+      initMergeProps,
+      pure,
+      areStatesEqual,
+      areOwnPropsEqual,
+      areStatePropsEqual,
+      areMergedPropsEqual,
+
+      先关注完入参，在关注出参
+    */
   } = {}
 ) {
   if (process.env.NODE_ENV !== 'production') {
@@ -421,11 +434,15 @@ export default function connectAdvanced(
         reactReduxForwardedRef,
         wrapperProps
       ] = useMemo(() => {
-  
+          //区分传递给包装器组件的实际“数据”道具，
+        //和控制行为所需的值（转发的ref，备用上下文实例）。
+        //要维护wrapperProps对象引用，请记住此解构。
+        // 参数上的结构
         const { reactReduxForwardedRef, ...wrapperProps } = props
         return [props.context, reactReduxForwardedRef, wrapperProps]
       }, [props])
 
+      // 检查上下文是否出现context消费者
       const ContextToUse = useMemo(() => {
         return propsContext &&
           propsContext.Consumer &&
@@ -434,13 +451,16 @@ export default function connectAdvanced(
           : Context
       }, [propsContext, Context])
 
+      // 得到context value 生产的值
       const contextValue = useContext(ContextToUse)
 
-
+       // 标记是否传入  createStore() 的值
       const didStoreComeFromProps =
         Boolean(props.store) &&
         Boolean(props.store.getState) &&
         Boolean(props.store.dispatch)
+
+       // 上下文 否传入  createStore() 的值  
       const didStoreComeFromContext =
         Boolean(contextValue) && Boolean(contextValue.store)
 
@@ -471,7 +491,7 @@ export default function connectAdvanced(
           didStoreComeFromProps ? null : contextValue.subscription
         )
 
-
+        // 相关参数变化， 就会引起子组件更新
         const notifyNestedSubs = subscription.notifyNestedSubs.bind(
           subscription
         )
@@ -480,38 +500,40 @@ export default function connectAdvanced(
       }, [store, didStoreComeFromProps, contextValue])
 
 
+      //确定应该在嵌套上下文中放入哪个{store，subscription}值，
+      //并记住该值以避免不必要的上下文更新。
       const overriddenContextValue = useMemo(() => {
         if (didStoreComeFromProps) {
 
+          //此组件是通过props直接订阅store的。
+          //我们不希望后代从该存储中读取-传递现有上下文值来自最近连接的祖先的任何值
           return contextValue
         }
 
-
-        return {
+           return {
           ...contextValue,
           subscription
         }
       }, [didStoreComeFromProps, contextValue, subscription])
 
-    
+     //每当Redux商店更新导致
+     //所计算的子组件props发生更改时，
+     //我们都需要强制重新渲染该包装器组件（或者我们在mapState中发现错误）
+     //强制更新渲染
       const [
         [previousStateUpdateResult],
         forceComponentUpdateDispatch
       ] = useReducer(storeStateUpdatesReducer, EMPTY_ARRAY, initStateUpdates)
 
-
       if (previousStateUpdateResult && previousStateUpdateResult.error) {
         throw previousStateUpdateResult.error
       }
-
-  
       const lastChildProps = useRef()
       const lastWrapperProps = useRef(wrapperProps)
       const childPropsFromStoreUpdate = useRef()
       const renderIsScheduled = useRef(false)
-
       const actualChildProps = usePureOnlyMemo(() => {
- 
+
         if (
           childPropsFromStoreUpdate.current &&
           wrapperProps === lastWrapperProps.current
@@ -520,9 +542,14 @@ export default function connectAdvanced(
         }
 
 
+        // 通过阅读 selectorFactory， 最终的目的是将， store: (state => {}), 合并到 wrapperProps 参数中
+        // 所以最终 actualChildProps 参数中将包含函数返回的参数
         return childPropsSelector(store.getState(), wrapperProps)
       }, [store, previousStateUpdateResult, wrapperProps])
 
+      //每次重新渲染时，我们都需要此同步执行。然而，React警告
+      //有关SSR中的useLayoutEffect，因此我们尝试检测环境并回落到
+      //仅使用useEffect以避免该警告，因为两者都不会运行。
 
       useIsomorphicLayoutEffectWithArgs(captureWrapperProps, [
         lastWrapperProps,
@@ -534,7 +561,7 @@ export default function connectAdvanced(
         notifyNestedSubs
       ])
 
-
+      //我们的重新订阅逻辑仅在存储/订阅设置更改时运行
       useIsomorphicLayoutEffectWithArgs(
         subscribeUpdates,
         [
@@ -552,6 +579,9 @@ export default function connectAdvanced(
         [store, subscription, childPropsSelector]
       )
 
+      // 完成所有步骤后，我们终于可以尝试实际渲染子组件。
+      // 我们将呈现的子组件的元素useMemo使用优化。
+      // 优化传入组建渲染
       const renderedWrappedComponent = useMemo(
         () => (
           <WrappedComponent
@@ -562,8 +592,15 @@ export default function connectAdvanced(
         [reactReduxForwardedRef, WrappedComponent, actualChildProps]
       )
 
+      //如果React看到的元素引用与上次完全相同，那么它将避免重新渲染
+      //那个孩子，就像它被包裹在React.memo（）或从shouldComponentUpdate返回false一样。
       const renderedChild = useMemo(() => {
         if (shouldHandleStateChanges) {
+          // 如果此组件已订阅存储更新，则需要将其
+          // 订阅实例向下传递给我们的后代。这意味着呈现相同的
+          // Context实例，并将不同的值放入上下文中。
+          // 上下文生产者
+          // overriddenContextValue 传入参数
           return (
             <ContextToUse.Provider value={overriddenContextValue}>
               {renderedWrappedComponent}
@@ -577,12 +614,12 @@ export default function connectAdvanced(
       return renderedChild
     }
 
-    // If we're in "pure" mode, ensure our wrapper component only re-renders when incoming props have changed.
+   // 发现是经过 memo 过的组件， 接着看 ConnectFunction 的实现
     const Connect = pure ? React.memo(ConnectFunction) : ConnectFunction
 
     Connect.WrappedComponent = WrappedComponent
     Connect.displayName = displayName
-
+    // 看看 是否需要转发, 暴露出传入的Component的DOM
     if (forwardRef) {
       const forwarded = React.forwardRef(function forwardConnectRef(
         props,
@@ -596,9 +633,46 @@ export default function connectAdvanced(
       return hoistStatics(forwarded, WrappedComponent)
     }
 
+    // hoistStatics(target, source)， 将 source 中 static 修饰过的方法，转到 target 中
+    // 那就主要看 Connect 实现
     return hoistStatics(Connect, WrappedComponent)
   }
 }
+```
 
+###### 5. 回看 [connect](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/connect.js) 中 [selectorFactory](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/selectorFactory.js) 和 [wrapMapToProps](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/wrapMapToProps.js)
 
+```js
+
+    // mapStateToPropsFactories = [whenMapStateToPropsIsFunction, whenMapStateToPropsIsMissing]
+
+    // initMapStateToProps 是函数， 下方是入参：出参
+    // initMapStateToProps =
+    // function initProxySelector (dispatch, { displayName }) :  (function mapToPropsProxy(stateOrDispatch, ownProps): proxy.mapToProps(stateOrDispatch))
+
+    // 其中 mapToProps， 就是 mapStateToProps = （stateOrDispatch, ownProps)： ({})
+    // 如果 mapStateToProps 为 null , 则 initMapStateToProps 将会是 () : {}
+    const initMapStateToProps = match(
+      mapStateToProps,
+      mapStateToPropsFactories,
+      'mapStateToProps'
+    )
+
+    // 点击标题连接进入源码看这块的注释，结合 wrapMapToProps 和 selectorFactory
+    // 里边使用了，大量闭包，用来共享参数，嵌套很多，阅读起来比较费劲
+    // 其中 selectorFactory 中是用来对比参数，然后做参数合并
+    // wrapMapToProps 实现了参数 state 映射到组件 props 理
+```
+
+###### 6. 关于 connect 的小总结
+
+```js
+
+// 1. 主要还是使用了 订阅/发布的设计模式来实现
+// 2. 使用 react.Context 实现组件上下文参数共享
+// 3. 使用了大量 useMemo 等 hooks 来优化渲染操作
+// 4. 通过高阶组件的方式实现参数混入
+
+// 遗留问题:
+// 1. 多个connect()组件嵌套的 上线文是怎么处理的， 继续看下文
 ```
