@@ -674,5 +674,5 @@ export default function connectAdvanced(
 // 4. 通过高阶组件的方式实现参数混入
 
 // 遗留问题:
-// 1. 多个connect()组件嵌套的 上线文是怎么处理的， 继续看下文
+// 1. 多个connect()组件嵌套的 上下文是怎么处理的， 继续看下文
 ```
