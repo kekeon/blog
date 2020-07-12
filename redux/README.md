@@ -1,6 +1,6 @@
-### Redux 源码阅读记录
+###  [Redux 阅读笔记](https://github.com/kekeon/blog/tree/master/redux)
 
-#### 目录介绍
+#### 目录介绍及参考资料
 
 - source_code 源码注释翻译
 - record_md 源码阅读笔记
@@ -222,7 +222,7 @@ if (process.env.NODE_ENV !== 'production') {
 export default Provider
 ```
 
-###### 1. 深挖 [Subscription](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/utils/Subscription.js) 的实现
+#### 1. 深挖 [Subscription](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/utils/Subscription.js) 的实现
 
 ```js
 
@@ -279,7 +279,7 @@ export default class Subscription {
 
 ```
 
-###### 2. 看一下 App 中的 Header 组件
+####  2. 看一下 App 中的 Header 组件
 
 ```js
 
@@ -295,7 +295,7 @@ export default connect(null, { addTodo })(Header)
 // react-redux/src/connect/connect
 ```
 
-###### 3. 探索 [connect](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/connect.js)
+####  3. 探索 [connect](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/connect.js)
 
 ```js
 
@@ -314,10 +314,11 @@ export default connect(null, { addTodo })(Header)
 // 源码中发现 connectHOC 是 connect 的核心代码
 ```
 
-###### 4. 接着看 [connectHoc](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/components/connectAdvanced.js) 删减版本， 点击连接看源码
+####  4. 接着看 [connectHoc](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/components/connectAdvanced.js) 删减版本， 点击连接看源码
 
 ```js
-export default function connectAdvanced(
+
+export default function connectAdvanced (
   selectorFactory,
   // options object:
   {
@@ -640,7 +641,7 @@ export default function connectAdvanced(
 }
 ```
 
-###### 5. 回看 [connect](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/connect.js) 中 [selectorFactory](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/selectorFactory.js) 和 [wrapMapToProps](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/wrapMapToProps.js)
+####  5. 回看 [connect](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/connect.js) 中 [selectorFactory](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/selectorFactory.js) 和 [wrapMapToProps](https://github.com/kekeon/blog/tree/master/redux/react-redux/src/connect/wrapMapToProps.js)
 
 ```js
 
@@ -664,7 +665,7 @@ export default function connectAdvanced(
     // wrapMapToProps 实现了参数 state 映射到组件 props 理
 ```
 
-###### 6. 关于 connect 的小总结
+####  6. 关于 connect 的小总结
 
 ```js
 
@@ -672,7 +673,5 @@ export default function connectAdvanced(
 // 2. 使用 react.Context 实现组件上下文参数共享
 // 3. 使用了大量 useMemo 等 hooks 来优化渲染操作
 // 4. 通过高阶组件的方式实现参数混入
-
-// 遗留问题:
-// 1. 多个connect()组件嵌套的 上下文是怎么处理的， 继续看下文
+// 5. 注意 react-redux 只有 import { ReactReduxContext } from './Context'， 这一个地方创建 Context， 所以所有 store 都是一样的
 ```
