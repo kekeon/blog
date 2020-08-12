@@ -74,4 +74,9 @@
 
 2. master 发送 chunk handle(记作 H) 和 server 列表（客户端），然后发送请求到那个副本上，客户端会 cache 这些结果, 如果它尝试再次读取这个 chunk 的花，客户端可能从返回的 chunk 中读取 1MB 或者是 64 kb 的片段， 所欲需要缓存给定的 chunk 所对应的 server, 对于相同的数据就不需要一遍一遍的查询。
 
-3. 客户端 和 chunk server 进行通信， 发送一个chunk handle 以及一个偏移chunk server 存储这些chunk , 每个chunk 在磁盘上都有个独立的linux 文件，位于普通的linux 的文件系统中， 最后返回数据给客户端
+3. 客户端 和 chunk server 进行通信， 发送一个 chunk handle 以及一个偏移 chunk server 存储这些 chunk , 每个 chunk 在磁盘上都有个独立的 linux 文件，位于普通的 linux 的文件系统中， 最后返回数据给客户端
+
+### write
+1. primary key 和 version 写入
+
+2. master 和 chunk GFS 通信
