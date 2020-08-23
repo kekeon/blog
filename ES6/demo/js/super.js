@@ -47,8 +47,8 @@
     console.log(s1.className) // Teacher
     Student.Print()
 
+    
     // 在对象字面量中的调用
-
     let obj1 = {
         method1() {
             console.log("method 1");
