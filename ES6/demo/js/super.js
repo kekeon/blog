@@ -1,4 +1,5 @@
 (function () {
+    console.log("%c super start", "color: red;")
     class Teacher {
         constructor() {
             this.className = 'Teacher'

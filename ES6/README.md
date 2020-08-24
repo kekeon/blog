@@ -8,3 +8,5 @@
 4. 在字面量对象中的使用
 
 [打开查看示例](https://github.com/kekeon/blog/tree/master/ES6/demo/js/super.js)
+
+#### 2.Proxy
