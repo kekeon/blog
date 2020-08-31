@@ -1,6 +1,6 @@
-### 你确定 ES6 的新特性你都会了吗？
+## 你确定 ES6 的新特性你都会了吗？
 
-#### 1. super
+### 1. super
 
 1. super 关键字用于访问和调用一个对象的父对象上的函数。
 2. super.prop 和 super[expr]表达式在类和对象字面量任何方法定义中都是有效的。
@@ -9,7 +9,7 @@
 
 [打开查看示例](https://github.com/kekeon/blog/tree/master/ES6/demo/js/super.js)
 
-#### 2.Proxy
+### 2.Proxy
 
 - get(target, propKey, receiver)
 
@@ -66,3 +66,46 @@
 - construct(target, args)
 
 拦截 Proxy 实例作为构造函数调用的操作，比如 new proxy(...args)。
+
+### 3.Reflect
+
+> 与大多数全局对象不同Reflect并非一个构造函数，所以不能通过new运算符对其进行调用，或者将Reflect对象作为一个函数来调用。Reflect的所有属性和方法都是静态的（就像Math对象）。
+
+- Reflect.apply(target, thisArgument, argumentsList)
+对一个函数进行调用操作，同时可以传入一个数组作为调用参数。和 Function.prototype.apply() 功能类似。
+
+- Reflect.construct(target, argumentsList[, newTarget])
+对构造函数进行 new 操作，相当于执行 new target(...args)。
+
+- Reflect.defineProperty(target, propertyKey, attributes)
+和 Object.defineProperty() 类似。如果设置成功就会返回 true
+
+- Reflect.deleteProperty(target, propertyKey)
+作为函数的delete操作符，相当于执行 delete target[name]。
+
+- Reflect.get(target, propertyKey[, receiver])
+获取对象身上某个属性的值，类似于 target[name]。
+
+- Reflect.getOwnPropertyDescriptor(target, propertyKey)
+类似于 Object.getOwnPropertyDescriptor()。如果对象中存在该属性，则返回对应的属性描述符,  否则返回 undefined.
+
+- Reflect.getPrototypeOf(target)
+类似于 Object.getPrototypeOf()。
+
+- Reflect.has(target, propertyKey)
+判断一个对象是否存在某个属性，和 in 运算符 的功能完全相同。
+
+- Reflect.isExtensible(target)
+类似于 Object.isExtensible().
+
+- Reflect.ownKeys(target)
+返回一个包含所有自身属性（不包含继承属性）的数组。(类似于 Object.keys(), 但不会受enumerable影响).
+
+- Reflect.preventExtensions(target)
+类似于 Object.preventExtensions()。返回一个Boolean。
+
+- Reflect.set(target, propertyKey, value[, receiver])
+将值分配给属性的函数。返回一个Boolean，如果更新成功，则返回true。
+
+- Reflect.setPrototypeOf(target, prototype)
+设置对象原型的函数. 返回一个 Boolean， 如果更新成功，则返回true。
